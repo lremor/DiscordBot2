@@ -32,9 +32,12 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
+    channelID = bot.get_channel(1324715914180169733)
+    await channelID.edit(name = 'DISCORD LIVRE DE LTX! Membros: {}'.format(channel.guild.member_count))
+    print('Contagem concluída')
     channel = member.guild.system_channel  # Canal padrão do servidor
-    if channel is not None:
-        await channel.send(f'EAE {member}!')
+    if channelID is not None:
+        await channel.send(f'EAE {member.mention}!')
 
 @bot.command()
 async def profile(ctx: Context) -> None:
