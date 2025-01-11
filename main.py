@@ -1,15 +1,18 @@
 from datetime import datetime
-
+import requests
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 import TrackerGG
 from TrackerGG import CSGOClient
-
 from constants import EMOJIS, TOKEN, TRACKERAPI_KEY
 
+intents = discord.Intents.default()
 
-intents: discord.Intents = discord.Intents.all()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+
 bot: commands.Bot = commands.Bot(
     command_prefix="$", intents=intents, case_insensitive=True
 )
@@ -20,13 +23,11 @@ client = CSGOClient(TRACKERAPI_KEY)
 def get_error_embed(desc: str) -> discord.Embed:
     return discord.Embed(title=":no_entry: Error", description=desc, color=0xFF0000)
 
-
 @bot.event
-async def on_ready() -> None:
-    game = discord.Game(f"{len(bot.guilds)} 서버 / {len(bot.users)} 유저")
+async def on_ready():
+    game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
-    print(f'{client.user} has connected to Discord!')
-
+    print(f'{bot.user} has connected to Discord!')
 
 @bot.command()
 async def profile(ctx: Context) -> None:
@@ -39,11 +40,12 @@ async def profile(ctx: Context) -> None:
         profile = await client.get_profile(ctx.message.content.split()[1])
 
         embed = discord.Embed(
-            title=f"CSGO Stat of {profile.platform_info.platform_user_handle}",
+            title=f"CS2 Stat of {profile.platform_info.platform_user_handle}",
             description=f"Playtime - {profile.segments[0].stats.time_played.display_value}",
         )
         embed.add_field(
-            name="K/D", value=profile.segments[0].stats.kd.display_value, inline=False
+            name="K/D", value=profile.segments[0].stats.kd.display_value, 
+            inline=False,
         )
         embed.add_field(
             name="W/L",
@@ -75,6 +77,5 @@ async def profile(ctx: Context) -> None:
 
     finally:
         await loading_message.delete()
-
 
 bot.run(TOKEN)
