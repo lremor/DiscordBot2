@@ -10,6 +10,7 @@ from constants import EMOJIS, TOKEN, TRACKERAPI_KEY
 intents = discord.Intents.default()
 
 intents.message_content = True
+intents.members = True
 
 client = discord.Client(intents=intents)
 
@@ -27,7 +28,13 @@ def get_error_embed(desc: str) -> discord.Embed:
 async def on_ready():
     game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
-    print(f'{bot.user} has connected to Discord!')
+    print(f'{bot.user} conectou no Discord!')
+
+@bot.event
+async def on_member_join(member):
+    channel = member.guild.system_channel  # Canal padrão do servidor
+    if channel is not None:
+        await channel.send(f'EAE {member}!')
 
 @bot.command()
 async def profile(ctx: Context) -> None:
