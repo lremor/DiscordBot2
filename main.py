@@ -71,7 +71,7 @@ async def uptime(ctx):
     current_time = time.time()
     user_id = ctx.author.id
     command_name = ctx.command.name
-    
+
     if user_id in command_timestamps:
         last_executed = command_timestamps[user_id].get(command_name, 0)
         if current_time - last_executed < 120:  # 120 segundos = 2 minutos
@@ -95,11 +95,12 @@ async def uptime(ctx):
         print(noupmsg)
 
 @bot.command()
-async def msg(ctx, mensagem: str):
+async def msg(ctx, *, mensagem: str):
     channelID = bot.get_channel(ID_CHANNEL)
+    user_name = ctx.author.name
     if channelID:
         await channelID.send(mensagem)
-        print(f'Mensagem enviada para o canal {channelID.name}')
+        print(f'Mensagem enviada para o canal {channelID.name} por {user_name}: {mensagem}')
     else:
         print('Canal não encontrado.')
 
