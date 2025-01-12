@@ -1,23 +1,22 @@
-from datetime import datetime
-import requests
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
-import TrackerGG
-from TrackerGG import CSGOClient
-from constants import EMOJIS, TOKEN, ID_SERVER, ID_CHANNEL
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv('TOKEN')
+ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
+ID_SERVER = int(os.getenv('ID_SERVER'))
 
 intents = discord.Intents.default()
-
 intents.message_content = True
 intents.members = True
-
 client = discord.Client(intents=intents)
 
 bot: commands.Bot = commands.Bot(
     command_prefix="!", intents=intents, case_insensitive=True
 )
-
 
 def get_error_embed(desc: str) -> discord.Embed:
     return discord.Embed(title=":no_entry: Error", description=desc, color=0xFF0000)
