@@ -36,7 +36,7 @@ async def on_member_join(member):
     member_count = guild.member_count
     channelID = bot.get_channel(ID_CHANNEL)
     await channelID.send(f'EAE {member}!')
-    await channelID.edit(name = f'DISCORD LIVRE DE LTX! Membros: {member_count} ')
+    await channelID.edit(subject = f'DISCORD LIVRE DE LTX! Membros: {member_count} ')
     print('Contagem concluída')
     
 
