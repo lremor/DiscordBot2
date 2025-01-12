@@ -1,4 +1,5 @@
 import datetime
+import time
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -12,6 +13,7 @@ ID_SERVER = int(os.getenv('ID_SERVER'))
 ID_LTX = int(os.getenv('ID_LTX'))
 
 start_time = None
+command_timestamps = {}
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -66,6 +68,19 @@ async def on_presence_update(before, after):
 @bot.command()
 async def uptime(ctx):
     channelID = bot.get_channel(ID_CHANNEL)
+    current_time = time.time()
+    user_id = ctx.author.id
+    command_name = ctx.command.name
+    
+    if user_id in command_timestamps:
+        last_executed = command_timestamps[user_id].get(command_name, 0)
+        if current_time - last_executed < 120:  # 120 segundos = 2 minutos
+            return
+        
+    if user_id not in command_timestamps:
+        command_timestamps[user_id] = {}
+        command_timestamps[user_id][command_name] = current_time
+
     if start_time:
         current_time = datetime.datetime.now()
         uptime_duration = current_time - start_time
