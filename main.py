@@ -7,10 +7,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-TOKEN = os.getenv('TOKEN')
+DISC_TOKEN = os.getenv('DISC_TOKEN')
 ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
 ID_SERVER = int(os.getenv('ID_SERVER'))
 ID_LTX = int(os.getenv('ID_LTX'))
+ID_MP = int(os.getenv('ID_MP'))
 
 start_time = None
 command_timestamps = {}
@@ -97,11 +98,12 @@ async def uptime(ctx):
 @bot.command()
 async def msg(ctx, *, mensagem: str):
     channelID = bot.get_channel(ID_CHANNEL)
-    user_name = ctx.author.name
-    if channelID:
+    userid = ctx.author.id
+    username = ctx.author.name
+    if userid == ID_MP:
         await channelID.send(mensagem)
-        print(f'Mensagem enviada para o canal {channelID.name} por {user_name}: {mensagem}')
+        print(f'Mensagem enviada para o canal {channelID.name} por {username}: {mensagem}')
     else:
-        print('Canal não encontrado.')
+        print(f'Usuário {ctx.author.name} tentou enviar msg.')
 
-bot.run(TOKEN)
+bot.run(DISC_TOKEN)
