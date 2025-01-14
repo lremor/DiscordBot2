@@ -1,5 +1,6 @@
 import datetime
 import time
+import random
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -15,6 +16,12 @@ ID_MP = int(os.getenv('ID_MP'))
 
 start_time = None
 command_timestamps = {}
+mensagens_aleatorias = [
+    "Fala tu {author}, estou proibido de falar! by lelo",
+    "Iae {author}, to mutado sorry",
+    "Hi {author}, sry i cant talk",
+    "GG {author}"
+]
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -35,15 +42,19 @@ async def on_ready():
     global start_time
     start_time = datetime.datetime.now()
     channelID = bot.get_channel(ID_CHANNEL)
+    mpID = await bot.fetch_user(ID_MP) 
     game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
-    await channelID.send(f'TO ON')
     print(f'{bot.user} conectou no Discord!')
-
+    try: 
+        await mpID.send("TO ON")
+    except discord.Forbidden: 
+        print(f'Não foi possível enviar a mensagem para {mpID.name}')
 @bot.event
 async def on_message(message):
     if bot.user.mentioned_in(message):
-        await message.channel.send(f'Fala tu {message.author.mention}, estou proibido de falar! by lelo')
+        mensagem = random.choice(mensagens_aleatorias).format(author=message.author.mention)
+        await message.channel.send(mensagem)        
     await bot.process_commands(message)
 
 @bot.event
@@ -56,10 +67,11 @@ async def on_member_join(member):
             await member.ban(reason="Galera não te curte.")
             print(f'LTX banido.')
         except Exception as e:
-            print(f'Erro ao banir o membro: {e}')
-    await channelID.send(f'EAE {member}!')
-    await channelID.edit(subject = f'DISCORD LIVRE DE LTX! Membros: {member_count}')
-    print(f'Assunto editado para: DISCORD LIVRE DE LTX! Membros: {member_count} ')
+            print(f'|S.O.S| Erro ao banir o LTX! |S.O.S| - {e}')
+    else:
+        await channelID.send(f'EAE {member}!')
+        await channelID.edit(subject = f'DISCORD LIVRE DE LTX! Membros: {member_count}')
+        print(f'Assunto editado para: DISCORD LIVRE DE LTX! Membros: {member_count}')
 
 @bot.event
 async def on_presence_update(before, after):
@@ -81,19 +93,18 @@ async def uptime(ctx):
     if user_id not in command_timestamps:
         command_timestamps[user_id] = {}
         command_timestamps[user_id][command_name] = current_time
-
-    if start_time:
-        current_time = datetime.datetime.now()
-        uptime_duration = current_time - start_time
-        hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
-        await channelID.send(upmsg)
-        print(upmsg)
-    else:
-        noupmsg = 'O tempo de início não foi registrado.'
-        await channelID.send(noupmsg)
-        print(noupmsg)
+        if start_time:
+            current_time = datetime.datetime.now()
+            uptime_duration = current_time - start_time
+            hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
+            minutes, seconds = divmod(remainder, 60)
+            upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
+            await channelID.send(upmsg)
+            print(upmsg)
+        else:
+            noupmsg = 'O tempo de início não foi registrado.'
+            await channelID.send(noupmsg)
+            print(noupmsg)
 
 @bot.command()
 async def msg(ctx, *, mensagem: str):
