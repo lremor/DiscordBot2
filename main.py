@@ -15,7 +15,6 @@ ID_LTX = int(os.getenv('ID_LTX'))
 ID_MP = int(os.getenv('ID_MP'))
 
 start_time = None
-command_timestamps = {}
 mensagens_aleatorias = [
     "Fala tu {author}, estou proibido de falar! by lelo",
     "Iae {author}, to mutado sorry",
@@ -79,32 +78,24 @@ async def on_presence_update(before, after):
 @bot.command()
 async def uptime(ctx):
     global start_time
-    channelID = bot.get_channel(ID_CHANNEL)
+    mpID = await bot.fetch_user(ID_MP)
+    userid = ctx.author.id 
     current_time = time.time()
-    user_id = ctx.author.id
-    command_name = ctx.command.name
 
-    if user_id in command_timestamps:
-        last_executed = command_timestamps[user_id].get(command_name, 0)
-        if current_time - last_executed < 120:  # 120 segundos = 2 minutos
-            print(f'Membro {ctx.author.name} tentou usar o comando !uptime em menos de 2 minutos!')
-            return
-        
-    if user_id not in command_timestamps:
-        command_timestamps[user_id] = {}
-    command_timestamps[user_id][command_name] = current_time
-
-    if start_time:
+    if start_time and userid == ID_MP:
         current_time = datetime.datetime.now()
         uptime_duration = current_time - start_time
         hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
         minutes, seconds = divmod(remainder, 60)
         upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
-        await channelID.send(upmsg)
-        print(upmsg)
+        if userid == ID_MP:
+            await mpID.send(upmsg)
+            print(upmsg)
+        else:
+            print(f'Membro {ctx.author.name} tentou enviar o comando !uptime')
     else:
         noupmsg = 'O tempo de início não foi registrado.'
-        await channelID.send(noupmsg)
+        await mpID.send(noupmsg)
         print(noupmsg)
 
 @bot.command()
