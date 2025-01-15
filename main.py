@@ -48,6 +48,7 @@ async def on_ready():
         await mpID.send("TO ON")
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
+
 @bot.event
 async def on_message(message):
     if bot.user.mentioned_in(message):
@@ -82,7 +83,7 @@ async def uptime(ctx):
     userid = ctx.author.id 
     current_time = time.time()
 
-    if start_time and userid == ID_MP:
+    if start_time:
         current_time = datetime.datetime.now()
         uptime_duration = current_time - start_time
         hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
