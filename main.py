@@ -41,7 +41,6 @@ def get_error_embed(desc: str) -> discord.Embed:
 async def on_ready():
     global start_time
     start_time = datetime.datetime.now()
-    channelID = bot.get_channel(ID_CHANNEL)
     mpID = await bot.fetch_user(ID_MP) 
     game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
@@ -70,8 +69,7 @@ async def on_member_join(member):
             print(f'|S.O.S| Erro ao banir o LTX! |S.O.S| - {e}')
     else:
         await channelID.send(f'EAE {member}!')
-        await channelID.edit(subject = f'DISCORD LIVRE DE LTX! Membros: {member_count}')
-        print(f'Assunto editado para: DISCORD LIVRE DE LTX! Membros: {member_count}')
+        print(f'Total de membros atualizado: {member_count}')
 
 @bot.event
 async def on_presence_update(before, after):
@@ -80,6 +78,7 @@ async def on_presence_update(before, after):
 
 @bot.command()
 async def uptime(ctx):
+    global start_time
     channelID = bot.get_channel(ID_CHANNEL)
     current_time = time.time()
     user_id = ctx.author.id
@@ -88,23 +87,25 @@ async def uptime(ctx):
     if user_id in command_timestamps:
         last_executed = command_timestamps[user_id].get(command_name, 0)
         if current_time - last_executed < 120:  # 120 segundos = 2 minutos
+            print(f'Membro {ctx.author.name} tentou usar o comando !uptime em menos de 2 minutos!')
             return
         
     if user_id not in command_timestamps:
         command_timestamps[user_id] = {}
-        command_timestamps[user_id][command_name] = current_time
-        if start_time:
-            current_time = datetime.datetime.now()
-            uptime_duration = current_time - start_time
-            hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
-            minutes, seconds = divmod(remainder, 60)
-            upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
-            await channelID.send(upmsg)
-            print(upmsg)
-        else:
-            noupmsg = 'O tempo de início não foi registrado.'
-            await channelID.send(noupmsg)
-            print(noupmsg)
+    command_timestamps[user_id][command_name] = current_time
+
+    if start_time:
+        current_time = datetime.datetime.now()
+        uptime_duration = current_time - start_time
+        hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
+        await channelID.send(upmsg)
+        print(upmsg)
+    else:
+        noupmsg = 'O tempo de início não foi registrado.'
+        await channelID.send(noupmsg)
+        print(noupmsg)
 
 @bot.command()
 async def msg(ctx, *, mensagem: str):
