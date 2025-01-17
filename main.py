@@ -2,8 +2,6 @@ import datetime
 import time
 import random
 import discord
-import youtube_dl
-import asyncio
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
