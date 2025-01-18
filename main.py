@@ -3,6 +3,8 @@ import time
 import random
 import discord
 import spotipy
+import yt_dlp as youtube_dl
+import asyncio
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -35,6 +37,26 @@ mensagens_aleatorias = [
     "Hi {author}, sry i cant talk",
     "GG {author}"
 ]
+
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+    'noplaylist': True,
+    'extractaudio': True,
+    'audioformat': 'mp3',
+    'outtmpl': '%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': True,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0'  # Bind to IPv4 since IPv6 addresses cause issues sometimes
+}
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -185,6 +207,37 @@ async def msg(ctx, *, mensagem: str):
         print(f'Mensagem enviada para o canal {channelID.name} por {username}: {mensagem}')
     else:
         print(f'Usuário {ctx.author.name} tentou enviar msg.')
+
+
+###################
+## !PLAY YOUTUBE ##
+###################
+
+@bot.command()
+async def play(ctx, *, search: str):
+    # Verifica se o autor do comando está em um canal de voz
+    if ctx.author.voice is None:
+        await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
+        return
+
+    # Conecta ao canal de voz do autor do comando
+    channel = ctx.author.voice.channel
+    voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    if voice_client is None:
+        voice_client = await channel.connect()
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
+        url = info['url']
+        title = info['title']
+
+    voice_client.play(discord.FFmpegPCMAudio(url))
+    await ctx.send(f"Tocando: {title}")
+
+    while voice_client.is_playing():
+        await asyncio.sleep(1)
+
+    await voice_client.disconnect()
 
 ##################
 ## STARTA O BOT ##
