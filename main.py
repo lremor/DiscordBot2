@@ -35,6 +35,7 @@ mensagens_aleatorias = [
     "Fala tu {author}, estou proibido de falar! by lelo",
     "Iae {author}, to mutado sorry",
     "Hi {author}, sry i cant talk",
+    "Sorry {author}, i cant be perfect! by bona 2007 no auge"
     "GG {author}"
 ]
 
