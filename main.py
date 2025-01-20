@@ -5,7 +5,6 @@ import discord
 import spotipy
 import yt_dlp
 import asyncio
-from pytube import YouTube
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -58,7 +57,8 @@ ydl_opts = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'  # Bind to IPv4 since IPv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0',  # Bind to IPv4 since IPv6 addresses cause issues sometimes
+    'cookiefile': 'cookies.txt'
 }
 
 intents = discord.Intents.default()
