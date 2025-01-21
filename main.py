@@ -5,6 +5,7 @@ import discord
 import spotipy
 import yt_dlp
 import asyncio
+import sqlite3
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -30,6 +31,15 @@ ID_MP = int(os.getenv('ID_MP'))
 #################
 ### VARIAVEIS ###
 #################
+
+conn = sqlite3.connect('logs.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS logs
+             (timestamp TEXT, user TEXT, action TEXT, content TEXT)''')
+conn.commit()
+
+intents = discord.Intents.default()
+intents.messages = True  # Habilita a intenção de mensagens
 
 start_time = None
 mensagens_aleatorias = [
@@ -58,7 +68,6 @@ ydl_opts = {
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0',  # Bind to IPv4 since IPv6 addresses cause issues sometimes
-    'cookiefile': 'cookies.txt'
 }
 
 intents = discord.Intents.default()
@@ -108,6 +117,18 @@ async def on_message(message):
         mensagem = random.choice(mensagens_aleatorias).format(author=message.author.mention)
         await message.channel.send(mensagem)        
     await bot.process_commands(message)
+    if message.author == bot.user:
+        return
+    else:
+    # Salve o log no banco de dados
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        user = str(message.author)
+        action = 'message'
+        content = message.content
+
+        c.execute("INSERT INTO logs (timestamp, user, action, content) VALUES (?, ?, ?, ?)",
+                (timestamp, user, action, content))
+        conn.commit()
 
 ##################
 ## AUTO-BAN LTX ##
@@ -251,6 +272,9 @@ async def stop(ctx):
     if voice_client and voice_client.is_playing():
         voice_client.stop()
         await ctx.send("Música parada.")
+
+####
+
 
 
 ##################
