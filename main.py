@@ -169,6 +169,10 @@ async def info(ctx, *, search: str):
         await ctx.send("Nenhuma música encontrada no Spotify.")
         return
 
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
+        url = info['url']
+
     track = results['tracks']['items'][0]
     track_name = track['name']
     track_artist = track['artists'][0]['name']
@@ -184,7 +188,8 @@ async def info(ctx, *, search: str):
         f"**Artista:** {track_artist}\n"
         f"**Álbum:** {track_album}\n"
         f"**Duração** {track_duration}\n"
-        f"**Link:** [Ouvir no Spotify]({track_url})"
+        f"**Link Spotify:** [Ouvir no Spotify]({track_url})\n"
+        f"**Link Youtube:** [Ouvir no YouTube]({url})"
     )
 
     channel = bot.get_channel(ID_CHANNEL)
