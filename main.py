@@ -241,30 +241,31 @@ async def msg(ctx, *, mensagem: str):
 async def play(ctx, *, search: str):
     
     # Verifica se o autor do comando está em um canal de voz
-    # if not ctx.author.voice.channel:
-    #     await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
-    #     return
+    if ctx.author.voice == None:
+        await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
+    else:
+
 
     # Conecta ao canal de voz do autor do comando
-    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn -filter:a "volume=0.25"'}
-    channel = ctx.author.voice.channel
-    voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn -filter:a "volume=0.25"'}
+        channel = ctx.author.voice.channel
+        voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     
-    if voice_client is None:
-        voice_client = await channel.connect()
+        if voice_client is None:
+            voice_client = await channel.connect()
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
-        url = info['url']
-        title = info['title']
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
+            url = info['url']
+            title = info['title']
 
-    voice_client.play(discord.FFmpegOpusAudio(url, **FFMPEG_OPTIONS))
-    await ctx.send(f"Tocando: {title}")
+        voice_client.play(discord.FFmpegOpusAudio(url, **FFMPEG_OPTIONS))
+        await ctx.send(f"Tocando: {title}")
 
-    while voice_client.is_playing():
-         await asyncio.sleep(1)
+        while voice_client.is_playing():
+            await asyncio.sleep(1)
 
-    await voice_client.disconnect()
+        await voice_client.disconnect()
 
 @bot.command()
 async def stop(ctx):
