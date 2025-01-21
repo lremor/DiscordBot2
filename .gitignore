@@ -8,6 +8,7 @@ venv/
 images/
 open.txt
 cookies.txt
+logs.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
