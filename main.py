@@ -34,6 +34,7 @@ ID_MP = int(os.getenv('ID_MP'))
 
 conn = sqlite3.connect('logs.db')
 c = conn.cursor()
+c1 = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS logs
              (timestamp TEXT, user TEXT, action TEXT, content TEXT)''')
 conn.commit()
@@ -195,6 +196,30 @@ async def info(ctx, *, search: str):
     channel = bot.get_channel(ID_CHANNEL)
     await channel.send(info_message)
 
+################
+##### !TOP #####
+################
+
+@bot.command()
+async def top(ctx):
+    c1.execute('''SELECT user, COUNT(*) as count
+                FROM logs
+                WHERE content LIKE '%https://gamersclub.com.br/%'
+                GROUP BY user
+                ORDER BY count DESC''')
+
+    rows = c1.fetchall()
+    
+    if rows:
+        response = "TOP Rei do Lobby:\n"
+
+        for row in rows:
+            response += f'Nick: {row[0]} -- Lobbys: {row[1]}\n'
+    else:
+        response = "Nenhum Rei do Lobby encontrado."
+
+    await ctx.send(response)
+    
 ###################
 ### !UPTIME PVT ###
 ###################
