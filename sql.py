@@ -1,16 +1,17 @@
 import sqlite3
 
-# Conectar ao banco de dados
 conn = sqlite3.connect('logs.db')
+
 cursor = conn.cursor()
+cursor.execute('''SELECT user, COUNT(*) as count
+             FROM logs
+             WHERE content LIKE '%https://gamersclub.com.br/%'
+             GROUP BY user
+             ORDER BY count DESC''')
 
-# Executar uma consulta
-cursor.execute("SELECT * FROM logs")
-
-# Obter os resultados
 rows = cursor.fetchall()
+print("TOP LOBBYS MASTER:")
 for row in rows:
-    print(row)
+    print(f'Nick: {row[0]}, Lobbys: {row[1]}')
 
-# Fechar a conexão
 conn.close()
