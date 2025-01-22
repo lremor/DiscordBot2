@@ -202,7 +202,7 @@ async def info(ctx, *, search: str):
 
 @bot.command()
 async def top(ctx):
-    c1.execute('''SELECT user, COUNT(*) as count
+    c1.execute('''SELECT user, COUNT(DISTINCT content) as count
                 FROM logs
                 WHERE content LIKE '%https://gamersclub.com.br/%'
                 GROUP BY user
@@ -211,7 +211,7 @@ async def top(ctx):
     rows = c1.fetchall()
     
     if rows:
-        response = "TOP Rei do Lobby:\n"
+        response = "**TOP Rei do Lobby:**\n"
 
         for row in rows:
             response += f'Nick: {row[0]} -- Lobbys: {row[1]}\n'
