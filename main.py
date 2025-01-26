@@ -6,6 +6,8 @@ import spotipy
 import yt_dlp
 import asyncio
 import sqlite3
+import requests
+import json
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -20,6 +22,8 @@ load_dotenv()
 DISC_TOKEN = os.getenv('DISC_TOKEN')
 SPOTIFY_KEY = os.getenv('SPOTIFY_KEY')
 SPOTIFY_SECRET = os.getenv('SPOTIFY_SECRET')
+DEEPSEEK_KEY = os.getenv('DEEPSEEK_KEY')
+DEEPSEEK_URL = os.getenv('DEEPSEEK_URL')
 ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
 ID_VOICE_GC = int(os.getenv('ID_VOICE_GC'))
 ID_VOICE_MIX1 = int(os.getenv('ID_VOICE_MIX1'))
@@ -158,6 +162,53 @@ async def on_member_join(member):
 async def on_presence_update(before, after):
     if before.status != after.status and after.status == discord.Status.online:
         print(f'{after.name} acabou de ficar online!')
+
+###################
+###### !DEEP ######
+###################
+
+@bot.command()
+async def deep(ctx, *, query: str):
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {DEEPSEEK_KEY}'
+    }
+    payload = json.dumps({
+        "messages": [
+            {'role': 'system', 'content': 'You are a helpful code reviewer.'},
+            {'role': 'user', 'content': f'{query}'}
+        ],
+        "stream": False,  # Set to True for streaming responses
+        "model": "deepseek-chat",
+        "frequency_penalty": 0,
+        "max_tokens": 2048,
+        "presence_penalty": 0,
+        "response_format": {
+        "type": "text"
+        },
+        "stop": None,
+        "stream": False,
+        "stream_options": None,
+        "temperature": 1,
+        "top_p": 1,
+        "tools": None,
+        "tool_choice": "none",
+        "logprobs": False,
+        "top_logprobs": None
+    })
+
+    response = requests.request("POST", DEEPSEEK_URL, headers=headers, data=payload)
+
+
+    if response.status_code == 200:
+        result = response.json()
+        await ctx.send(result['choices'][0]['message']['content'].strip())
+    elif response.status_code == 402:
+        await ctx.send("Limite de uso da API DeepSeek atingido. (O adm está pobre)")
+    else:
+        print(f"Error {response.status_code}: {response.text}")
 
 ###################
 ## !INFO SPOTIFY ##
