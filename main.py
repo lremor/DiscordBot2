@@ -24,6 +24,7 @@ SPOTIFY_KEY = os.getenv('SPOTIFY_KEY')
 SPOTIFY_SECRET = os.getenv('SPOTIFY_SECRET')
 DEEPSEEK_KEY = os.getenv('DEEPSEEK_KEY')
 DEEPSEEK_URL = os.getenv('DEEPSEEK_URL')
+ID_IA = int(os.getenv('ID_IA'))
 ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
 ID_VOICE_GC = int(os.getenv('ID_VOICE_GC'))
 ID_VOICE_MIX1 = int(os.getenv('ID_VOICE_MIX1'))
@@ -169,7 +170,11 @@ async def on_presence_update(before, after):
 
 @bot.command()
 async def deep(ctx, *, query: str):
-
+    canal = bot.get_channel(ID_IA)
+    if ctx.channel.id != ID_IA:
+        await ctx.send('Este comando só pode ser usado no canal da IA')
+        return
+    
     headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -204,9 +209,9 @@ async def deep(ctx, *, query: str):
 
     if response.status_code == 200:
         result = response.json()
-        await ctx.send(result['choices'][0]['message']['content'].strip())
+        await canal.send(result['choices'][0]['message']['content'].strip())
     elif response.status_code == 402:
-        await ctx.send("Limite de uso da API DeepSeek atingido. (O adm está pobre)")
+        await canal.send("Limite de uso da API DeepSeek atingido. (O adm está pobre)")
     else:
         print(f"Error {response.status_code}: {response.text}")
 
