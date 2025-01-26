@@ -204,16 +204,26 @@ async def deep(ctx, *, query: str):
         "top_logprobs": None
     })
 
-    response = requests.request("POST", DEEPSEEK_URL, headers=headers, data=payload)
+    try:
+
+        response = requests.request("POST", DEEPSEEK_URL, headers=headers, data=payload)
 
 
-    if response.status_code == 200:
-        result = response.json()
-        await canal.send(result['choices'][0]['message']['content'].strip())
-    elif response.status_code == 402:
-        await canal.send("Limite de uso da API DeepSeek atingido. (O adm está pobre)")
-    else:
-        print(f"Error {response.status_code}: {response.text}")
+        if response.status_code == 200:
+            result = response.json()
+            await canal.send(result['choices'][0]['message']['content'].strip())
+        elif response.status_code == 402:
+            await canal.send("Limite de uso da API DeepSeek atingido. (O bot está pobre)")
+    except requests.exceptions.HTTPError as http_err:
+
+        if response.status_code == 400 and response.json().get('code') == 50035:
+            await canal.send("Resposta muito longa e o bot está pobre. Tente outra pergunta")
+        else:
+            await canal.send("Resposta muito longa e o bot está pobre. Tente outra pergunta")
+            print(f"Error {http_err}")
+    except Exception as e:
+        await canal.send("Resposta muito longa e o bot está pobre. Tente outra pergunta")
+        print(f"Error {e}")
 
 ###################
 ## !INFO SPOTIFY ##
