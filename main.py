@@ -273,13 +273,14 @@ async def info(ctx, *, search: str):
 async def news(ctx):
     canal = bot.get_channel(ID_NEWS)
     if ctx.channel.id != ID_NEWS:
-        await ctx.send('Este comando só pode ser usado no canal da IA')
+        await ctx.send('Este comando só pode ser usado no canal das NEWS')
         return
     feed = feedparser.parse(RSS_FEED_URL)
+    await canal.send("########################################################################################################")
     for entry in feed.entries[:5]:  # Limite a 5 notícias
         titulo = entry.title
         link = entry.link
-        await canal.send(f'**{titulo}**\n`{link}`')
+        await canal.send(f'**[{titulo}]({link})**')
 
 ################
 ##### !TOP #####
