@@ -8,6 +8,7 @@ import asyncio
 import sqlite3
 import requests
 import json
+import feedparser
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -24,6 +25,8 @@ SPOTIFY_KEY = os.getenv('SPOTIFY_KEY')
 SPOTIFY_SECRET = os.getenv('SPOTIFY_SECRET')
 DEEPSEEK_KEY = os.getenv('DEEPSEEK_KEY')
 DEEPSEEK_URL = os.getenv('DEEPSEEK_URL')
+RSS_FEED_URL = os.getenv('RSS_FEED_URL')
+ID_NEWS = int(os.getenv('ID_NEWS'))
 ID_IA = int(os.getenv('ID_IA'))
 ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
 ID_VOICE_GC = int(os.getenv('ID_VOICE_GC'))
@@ -261,6 +264,22 @@ async def info(ctx, *, search: str):
 
     channel = bot.get_channel(ID_CHANNEL)
     await channel.send(info_message)
+
+################
+##### !NEWS #####
+################
+
+@bot.command()
+async def news(ctx):
+    canal = bot.get_channel(ID_NEWS)
+    if ctx.channel.id != ID_NEWS:
+        await ctx.send('Este comando só pode ser usado no canal da IA')
+        return
+    feed = feedparser.parse(RSS_FEED_URL)
+    for entry in feed.entries[:5]:  # Limite a 5 notícias
+        titulo = entry.title
+        link = entry.link
+        await canal.send(f'**{titulo}**\n`{link}`')
 
 ################
 ##### !TOP #####
