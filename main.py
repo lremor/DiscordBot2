@@ -1,18 +1,7 @@
-import datetime
-import time
-import random
-import discord
-import spotipy
-import yt_dlp
-import asyncio
-import sqlite3
-import requests
-import json
-import feedparser
+import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
-import os
 from dotenv import load_dotenv
 
 ##################
@@ -316,6 +305,14 @@ async def uptime(ctx):
     mpID = await bot.fetch_user(ID_MP)
     userid = ctx.author.id 
     current_time = time.time()
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    total_memory = memory.total / (1024 ** 3)
+    system = platform.system()
+    release = platform.release()
+    processor = platform.processor()
+    cpu_freq = psutil.cpu_freq().current
 
     if start_time:
         current_time = datetime.datetime.now()
@@ -323,15 +320,49 @@ async def uptime(ctx):
         hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
         minutes, seconds = divmod(remainder, 60)
         upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
+        try:
+            temperatures = psutil.sensors_temperatures()
+            cpu_temp = temperatures['coretemp'][0].current if 'coretemp' in temperatures else 'N/A'
+        except AttributeError:
+            cpu_temp = 'N/A'
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                gpu = gpus[0]  # Considerando a primeira GPU
+                gpu_temp = gpu.temperature
+                gpu_name = gpu.name
+            else:
+                gpu_temp = "Nenhuma GPU encontrada."
+                gpu_name = 'Nenhuma GPU encontrada.'
+        except Exception as e:
+            gpu_temp = f"Ocorreu um erro ao obter a temperatura da GPU: {e}"
+            gpu_name = f"Ocorreu um erro ao obter o nome da GPU: {e}"
+        statsmsg = (
+        f"**Sistema Operacional:** {system} {release}\n"
+        f"**Processador:** {processor} ({cpu_freq / 1000:.2f} GHz)\n"
+        f"**Uso de CPU:** {cpu_usage}%\n"
+        f"**Temperatura da CPU:** {cpu_temp}°C\n"
+        f"**Uso de Memória:** {memory_usage}% de {total_memory:.2f} GB\n"
+        f"**GPU:** {gpu_name}\n"
+        f"**Temperatura da GPU:** {gpu_temp}°C\n"
+    )
         if userid == ID_MP:
             await mpID.send(upmsg)
+            await mpID.send(statsmsg)
             print(upmsg)
+            print(statsmsg)
         else:
+            await ctx.send('Comando restrito.')
             print(f'Membro {ctx.author.name} tentou enviar o comando !uptime')
     else:
         noupmsg = 'O tempo de início não foi registrado.'
         await mpID.send(noupmsg)
+        await mpID.send(statsmsg)
         print(noupmsg)
+        print(statsmsg)
+
+    # Formatar a mensagem
+
 
 ###################
 #### !MSG PVT  ####
