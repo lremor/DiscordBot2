@@ -321,7 +321,7 @@ async def stats(ctx):
         gpus = GPUtil.getGPUs()
         if gpus:
             gpu = gpus[0]  # Considerando a primeira GPU
-            gpu_temp = gpu.temperature
+            gpu_temp = f"{gpu.temperature}"+"°C"
             gpu_name = gpu.name
         else:
             gpu_temp = "Nenhuma GPU encontrada."
@@ -336,7 +336,7 @@ async def stats(ctx):
         f"**Temperatura da CPU:** {cpu_temp}°C\n"
         f"**Uso de Memória:** {memory_usage}% de {total_memory:.2f} GB\n"
         f"**GPU:** {gpu_name}\n"
-        f"**Temperatura da GPU:** {gpu_temp}°C\n"
+        f"**Temperatura da GPU:** {gpu_temp}\n"
     )
     if userid == ID_MP:
         await mpID.send(statsmsg)
