@@ -279,7 +279,7 @@ async def news(ctx):
 async def top(ctx):
     c1.execute('''SELECT user, COUNT(DISTINCT content) as count
                 FROM logs
-                WHERE content LIKE '%https://gamersclub.com.br/%'
+                WHERE content LIKE '%https://gamersclub.com.br/j/%'
                 GROUP BY user
                 ORDER BY count DESC''')
 
@@ -342,7 +342,7 @@ async def stats(ctx):
         await mpID.send(statsmsg)
     else:
         await ctx.send('Comando restrito.')
-        print(f'Membro {ctx.author.name} tentou enviar o comando !uptime')
+        print(f'Membro {ctx.author.name} tentou enviar o comando !stats')
 
 ###################
 ### !UPTIME PVT ###
