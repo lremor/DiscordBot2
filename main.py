@@ -1,4 +1,4 @@
-import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform
+import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, pandas as pd
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -35,6 +35,7 @@ c1 = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS logs
              (timestamp TEXT, user TEXT, action TEXT, content TEXT)''')
 conn.commit()
+query = 'SELECT timestamp, content FROM logs'
 
 intents = discord.Intents.default()
 intents.messages = True  # Habilita a intenção de mensagens
@@ -80,6 +81,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIFY_KEY
 bot: commands.Bot = commands.Bot(
     command_prefix="!", intents=intents, case_insensitive=True
 )
+
 
 ############
 ### ERRO ###
@@ -254,9 +256,9 @@ async def info(ctx, *, search: str):
     channel = bot.get_channel(ID_CHANNEL)
     await channel.send(info_message)
 
-################
-##### !NEWS #####
-################
+###############
+#### !NEWS ####
+###############
 
 @bot.command()
 async def news(ctx):
@@ -270,6 +272,7 @@ async def news(ctx):
         titulo = entry.title
         link = entry.link
         await canal.send(f'**[{titulo}]({link})**')
+
 
 ################
 ##### !TOP #####
@@ -295,6 +298,26 @@ async def top(ctx):
 
     await ctx.send(response)
     
+
+############
+### !MES ###
+############
+
+@bot.command()
+async def mes(ctx):
+    channelID = bot.get_channel(ID_CHANNEL)
+    mes_atual = datetime.datetime.now().month
+    df = pd.read_sql_query(query, conn)
+    result = df[(df['timestamp'].str.slice(5, 7).astype(int) == mes_atual) & df['content'].str.contains('https://gamersclub.com.br/j/')].drop_duplicates(subset=['content'])
+    quantidade = len(result)
+    result_msg = f'Vocês jogaram {quantidade} lobbys no mês atual.'
+    if result.empty:
+        await channelID.send('Nenhuma mensagem encontrada para o mês atual com o link específico.')
+    else:
+        await channelID.send(result_msg)
+    
+
+
 ###################
 ### !STATS PVT ###
 ###################
@@ -429,8 +452,6 @@ async def stop(ctx):
     if voice_client and voice_client.is_playing():
         voice_client.stop()
         await ctx.send("Música parada.")
-
-####
 
 
 
