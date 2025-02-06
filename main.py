@@ -15,15 +15,18 @@ SPOTIFY_SECRET = os.getenv('SPOTIFY_SECRET')
 DEEPSEEK_KEY = os.getenv('DEEPSEEK_KEY')
 DEEPSEEK_URL = os.getenv('DEEPSEEK_URL')
 RSS_FEED_URL = os.getenv('RSS_FEED_URL')
-ID_NEWS = int(os.getenv('ID_NEWS'))
-ID_IA = int(os.getenv('ID_IA'))
-ID_CHANNEL = int(os.getenv('ID_CHANNEL'))
-ID_VOICE_GC = int(os.getenv('ID_VOICE_GC'))
-ID_VOICE_MIX1 = int(os.getenv('ID_VOICE_MIX1'))
-ID_SERVER = int(os.getenv('ID_SERVER'))
+DATAJUD_URL = os.getenv('DATAJUD_URL')
+DATAJUD_KEY = os.getenv('DATAJUD_KEY')
+ID_LEGENDS_NEWS = int(os.getenv('ID_LEGENDS_NEWS'))
+ID_LEGENDS_IA = int(os.getenv('ID_LEGENDS_IA'))
+ID_LEGENDS_LOURDES = int(os.getenv('ID_LEGENDS_LOURDES'))
+ID_LEGENDS_VOICE_GC = int(os.getenv('ID_LEGENDS_VOICE_GC'))
+ID_LEGENDS_VOICE_MIX1 = int(os.getenv('ID_LEGENDS_VOICE_MIX1'))
+ID_LEGENDS_SERVER = int(os.getenv('ID_LEGENDS_SERVER'))
 ID_LTX = int(os.getenv('ID_LTX'))
 ID_MP = int(os.getenv('ID_MP'))
-
+ID_TECH_SERVER = int(os.getenv('ID_TECH_SERVER'))
+ID_TECH_UPDATES = int(os.getenv('ID_TECH_UPDATES'))
 
 #################
 ### VARIAVEIS ###
@@ -107,6 +110,11 @@ async def on_ready():
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
 
+
+################################################################################################
+####################################### ERECHIM LEGENDS ########################################
+################################################################################################
+
 ########################
 ## AO MENCIONAR O BOT ##
 ########################
@@ -136,18 +144,20 @@ async def on_message(message):
 
 @bot.event
 async def on_member_join(member):
-    guild = bot.get_guild(ID_SERVER)
+    guild = bot.get_guild(ID_LEGENDS_SERVER)
     member_count = guild.member_count
-    channelID = bot.get_channel(ID_CHANNEL)
-    if member.id == ID_LTX:
-        try:
-            await member.ban(reason="Galera não te curte.")
-            print(f'LTX banido.')
-        except Exception as e:
-            print(f'|S.O.S| Erro ao banir o LTX! |S.O.S| - {e}')
-    else:
-        await channelID.send(f'EAE {member}!')
-        print(f'Total de membros atualizado: {member_count}')
+    channelID = bot.get_channel(ID_LEGENDS_LOURDES)
+    if guild and member.guild.id == ID_LEGENDS_SERVER:
+        if member.id == ID_LTX:
+            try:
+                await member.ban(reason="Galera não te curte.")
+                await channelID.send(f'LTX banido.')
+                print(f'LTX banido.')
+            except Exception as e:
+                print(f'|S.O.S| Erro ao banir o LTX! |S.O.S| - {e}')
+        else:
+            await channelID.send(f'EAE {member}!')
+            print(f'Total de membros atualizado: {member_count}')
 
 ###############################################
 ## AVISA NO CONSOLE QUANDO UM MEMBRO CONECTA ##
@@ -164,8 +174,10 @@ async def on_presence_update(before, after):
 
 @bot.command()
 async def deep(ctx, *, query: str):
-    canal = bot.get_channel(ID_IA)
-    if ctx.channel.id != ID_IA:
+    canal = bot.get_channel(ID_LEGENDS_IA)
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
+    if ctx.channel.id != ID_LEGENDS_IA:
         await ctx.send('Este comando só pode ser usado no canal da IA')
         return
     
@@ -225,6 +237,8 @@ async def deep(ctx, *, query: str):
 
 @bot.command()
 async def info(ctx, *, search: str):
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     results = sp.search(q=search, limit=1)
     if not results['tracks']['items']:
         await ctx.send("Nenhuma música encontrada no Spotify.")
@@ -253,7 +267,7 @@ async def info(ctx, *, search: str):
         f"**Link Youtube:** [Ouvir no YouTube]({url})"
     )
 
-    channel = bot.get_channel(ID_CHANNEL)
+    channel = bot.get_channel(ID_LEGENDS_LOURDES)
     await channel.send(info_message)
 
 ###############
@@ -262,8 +276,10 @@ async def info(ctx, *, search: str):
 
 @bot.command()
 async def news(ctx):
-    canal = bot.get_channel(ID_NEWS)
-    if ctx.channel.id != ID_NEWS:
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
+    canal = bot.get_channel(ID_LEGENDS_NEWS)
+    if ctx.channel.id != ID_LEGENDS_NEWS:
         await ctx.send('Este comando só pode ser usado no canal das NEWS')
         return
     feed = feedparser.parse(RSS_FEED_URL)
@@ -280,23 +296,26 @@ async def news(ctx):
 
 @bot.command()
 async def top(ctx):
-    c1.execute('''SELECT user, COUNT(DISTINCT content) as count
-                FROM logs
-                WHERE content LIKE '%https://gamersclub.com.br/j/%'
-                GROUP BY user
-                ORDER BY count DESC''')
-
-    rows = c1.fetchall()
-    
-    if rows:
-        response = "**TOP Rei do Lobby:**\n"
-
-        for row in rows:
-            response += f'Nick: {row[0]} -- Lobbys: {row[1]}\n'
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     else:
-        response = "Nenhum Rei do Lobby encontrado."
+        c1.execute('''SELECT user, COUNT(DISTINCT content) as count
+                    FROM logs
+                    WHERE content LIKE '%https://gamersclub.com.br/j/%'
+                    GROUP BY user
+                    ORDER BY count DESC''')
 
-    await ctx.send(response)
+        rows = c1.fetchall()
+    
+        if rows:
+            response = "**TOP Rei do Lobby:**\n"
+
+            for row in rows:
+                response += f'Nick: {row[0]} -- Lobbys: {row[1]}\n'
+        else:
+            response = "Nenhum Rei do Lobby encontrado."
+
+        await ctx.send(response)
     
 
 ############
@@ -305,7 +324,9 @@ async def top(ctx):
 
 @bot.command()
 async def mes(ctx):
-    channelID = bot.get_channel(ID_CHANNEL)
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
+    channelID = bot.get_channel(ID_LEGENDS_LOURDES)
     mes_atual = datetime.datetime.now().month
     df = pd.read_sql_query(query, conn)
     result = df[(df['timestamp'].str.slice(5, 7).astype(int) == mes_atual) & df['content'].str.contains('https://gamersclub.com.br/j/')].drop_duplicates(subset=['content'])
@@ -324,6 +345,8 @@ async def mes(ctx):
 
 @bot.command()
 async def stats(ctx):
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     global start_time
     mpID = await bot.fetch_user(ID_MP)
     userid = ctx.author.id
@@ -373,6 +396,8 @@ async def stats(ctx):
 
 @bot.command()
 async def uptime(ctx):
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     global start_time
     mpID = await bot.fetch_user(ID_MP)
     userid = ctx.author.id 
@@ -402,7 +427,7 @@ async def uptime(ctx):
 
 @bot.command()
 async def msg(ctx, *, mensagem: str):
-    channelID = bot.get_channel(ID_CHANNEL)
+    channelID = bot.get_channel(ID_LEGENDS_LOURDES)
     userid = ctx.author.id
     username = ctx.author.name
     if userid == ID_MP:
@@ -418,7 +443,8 @@ async def msg(ctx, *, mensagem: str):
 
 @bot.command()
 async def play(ctx, *, search: str):
-    
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     # Verifica se o autor do comando está em um canal de voz
     if ctx.author.voice == None:
         await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
@@ -448,11 +474,55 @@ async def play(ctx, *, search: str):
 
 @bot.command()
 async def stop(ctx):
+    if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
     voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     if voice_client and voice_client.is_playing():
         voice_client.stop()
         await ctx.send("Música parada.")
 
+################################################################################################
+########################################## TECH ADV ############################################
+################################################################################################
+
+@bot.command()
+async def check(ctx, *, processo: str):
+    if ctx.guild.id != ID_TECH_SERVER:
+        return
+    
+    try:
+        # Tenta converter a mensagem para um número inteiro
+        processo_numero = int(processo)
+    except ValueError:
+        await ctx.send("O número do processo deve ser um valor inteiro.")
+        return
+    if not processo.isdigit():
+        await ctx.send("O número do processo deve conter somente números.")
+        return
+    
+    headers = {
+        'Authorization': f'APIKey {DATAJUD_KEY}',
+        'Content-Type': 'application/json'
+    }
+    data = json.dumps({
+        "query": {
+            "match": {
+                "numeroProcesso": processo_numero
+            }
+        }
+    })
+    response = requests.request("POST", DATAJUD_URL, headers=headers, json=json.loads(data))
+    print(response.json())
+    if response.status_code == 200:
+        process_info = response.json()
+        if process_info['hits']['total']['value'] > 0:
+            numero_processo = process_info['hits']['hits'][0]['_source']['numeroProcesso']
+            data_atualizacao = process_info['hits']['hits'][0]['_source']['dataHoraUltimaAtualizacao']
+            await ctx.send(f"Processo: {numero_processo}\nÚltima Atualização: {data_atualizacao}")
+        else:
+            await ctx.send(f"Nenhum processo encontrado.")
+    else:
+        return await ctx.send(f"Erro ao consultar o processo: {response.status_code}")
 
 
 ##################
