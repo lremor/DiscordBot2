@@ -345,8 +345,6 @@ async def mes(ctx):
 
 @bot.command()
 async def stats(ctx):
-    if ctx.guild.id != ID_LEGENDS_SERVER:
-        return
     global start_time
     mpID = await bot.fetch_user(ID_MP)
     userid = ctx.author.id
@@ -396,8 +394,6 @@ async def stats(ctx):
 
 @bot.command()
 async def uptime(ctx):
-    if ctx.guild.id != ID_LEGENDS_SERVER:
-        return
     global start_time
     mpID = await bot.fetch_user(ID_MP)
     userid = ctx.author.id 
