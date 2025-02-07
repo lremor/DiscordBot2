@@ -5,6 +5,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import tasks, commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 ##################
 ## TOKENS E IDS ##
@@ -112,23 +113,36 @@ async def on_ready():
     try: 
         await mpID.send("TO ON")
         scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
-        scheduler.add_job(upnews, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(upnews, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
         scheduler.start()
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
 
-async def upnews2():
-    feed = feedparser.parse(RSS_FEED_URL)
-    for entry in feed.entries[:1]: 
-        titulo = entry.title
-        link = entry.link
-        return f'**[{titulo}]({link})**'
+async def dolar():
+        link = f'https://economia.awesomeapi.com.br/last/USD-BRL'
+        requisicao = requests.get(link)
+        dic_requisicao = requisicao.json()
+        cotacao = dic_requisicao[f"USDBRL"]["bid"]
+        return f'**DÓLAR HOJE:** {cotacao}'
 
-async def upnews():
+async def newsglobo():
+    url = 'https://globo.com'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    first_news_element = soup.find('a', {'class': 'post__link'})
+    if first_news_element:
+        titulo = first_news_element.text.strip()
+        link = first_news_element['href']
+        return f'**NOTÍCIA:** [{titulo}]({link})'
+    else:
+        return "Nenhuma notícia principal encontrada."
+
+async def msgpadrao():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
-    msg = f"News: {upnews2()}"
-    await techupdates.send(msg)
+    await techupdates.send(f'{await newsglobo()}')
+    await techupdates.send(f'{await dolar()}')
 
 async def fimdomes():
     channel = bot.get_channel(ID_LEGENDS_LOURDES)
@@ -205,9 +219,12 @@ async def on_presence_update(before, after):
 ###################
 
 @bot.command()
-async def deep(ctx, *, query: str):
+async def deep(ctx, *, pergunta: str = None):
     canal = bot.get_channel(ID_LEGENDS_IA)
     if ctx.guild.id != ID_LEGENDS_SERVER:
+        return
+    if pergunta is None:
+        await ctx.send("Você deve digitar a pergunta, ex: !deep Qual é seu nome?")
         return
     if ctx.channel.id != ID_LEGENDS_IA:
         await ctx.send('Este comando só pode ser usado no canal da IA')
@@ -221,7 +238,7 @@ async def deep(ctx, *, query: str):
     payload = json.dumps({
         "messages": [
             {'role': 'system', 'content': 'You are a helpful code reviewer.'},
-            {'role': 'user', 'content': f'{query}'}
+            {'role': 'user', 'content': f'{pergunta}'}
         ],
         "stream": False,  # Set to True for streaming responses
         "model": "deepseek-chat",
