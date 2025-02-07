@@ -1,6 +1,8 @@
 import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, pandas as pd
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from spotipy.oauth2 import SpotifyClientCredentials
-from discord.ext import commands
+from discord.ext import tasks, commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 
@@ -43,12 +45,14 @@ query = 'SELECT timestamp, content FROM logs'
 intents = discord.Intents.default()
 intents.messages = True  # Habilita a intenção de mensagens
 
+scheduler = AsyncIOScheduler()
+
 start_time = None
 mensagens_aleatorias = [
     "Fala tu {author}, estou proibido de falar! by lelo",
     "Iae {author}, to mutado sorry",
     "Hi {author}, sry i cant talk",
-    "Sorry {author}, i cant be perfect! by bona 2007 no auge"
+    "Sorry {author}, i cant be perfect! by bona 2007 no auge",
     "GG {author}"
 ]
 
@@ -107,8 +111,36 @@ async def on_ready():
     print(f'{bot.user} conectou no Discord!')
     try: 
         await mpID.send("TO ON")
+        scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
+        scheduler.add_job(upnews, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(upnews, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.start()
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
+
+async def upnews2():
+    feed = feedparser.parse(RSS_FEED_URL)
+    for entry in feed.entries[:1]: 
+        titulo = entry.title
+        link = entry.link
+        return f'**[{titulo}]({link})**'
+
+async def upnews():
+    techupdates = bot.get_channel(ID_TECH_UPDATES)
+    msg = f"News: {upnews2()}"
+    await techupdates.send(msg)
+
+async def fimdomes():
+    channel = bot.get_channel(ID_LEGENDS_LOURDES)
+    if channel:
+        import datetime
+        mes_passado = datetime.datetime.now().month - 1
+        print(mes_passado)
+        df = pd.read_sql_query(query, conn)
+        result = df[(df['timestamp'].str.slice(5, 7).astype(int) == mes_passado) & df['content'].str.contains('https://gamersclub.com.br/j/')].drop_duplicates(subset=['content'])
+        quantidade = len(result)
+        result_msg = f'FIM DO MÊS CHEGOU! Vocês jogaram {quantidade} lobbys neste mês. GG!'
+        await channel.send(result_msg)
 
 
 ################################################################################################
@@ -482,18 +514,16 @@ async def stop(ctx):
 ################################################################################################
 
 @bot.command()
-async def check(ctx, *, processo: str):
+async def check(ctx, *, processo: str = None):
     if ctx.guild.id != ID_TECH_SERVER:
         return
-    
+    if processo is None:
+        await ctx.send("Você deve digitar: !check 000802938472901394")
+        return
     try:
-        # Tenta converter a mensagem para um número inteiro
         processo_numero = int(processo)
     except ValueError:
         await ctx.send("O número do processo deve ser um valor inteiro.")
-        return
-    if not processo.isdigit():
-        await ctx.send("O número do processo deve conter somente números.")
         return
     
     headers = {
