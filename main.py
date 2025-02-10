@@ -115,33 +115,49 @@ async def on_ready():
         scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
         scheduler.add_job(msgpadrao, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
         scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao, CronTrigger(hour=00, minute=30, timezone="America/Sao_Paulo"))
         scheduler.start()
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
 
 async def dolar():
-        link = f'https://economia.awesomeapi.com.br/last/USD-BRL'
+        link = 'https://economia.awesomeapi.com.br/last/USD-BRL'
         requisicao = requests.get(link)
         dic_requisicao = requisicao.json()
-        cotacao = dic_requisicao[f"USDBRL"]["bid"]
+        cotacao = dic_requisicao["USDBRL"]["bid"]
         return f'**DÓLAR HOJE:** {cotacao}'
 
+async def newsanpd():
+    urlanpd = 'https://www.gov.br/anpd/pt-br/assuntos/noticias'
+    responseanpd = requests.get(urlanpd)
+    soup = BeautifulSoup(responseanpd.content, 'html.parser')
+    noticia = soup.find('div', class_='conteudo')  # Ajuste para encontrar corretamente a notícia
+    if noticia:
+        titulo_tag = noticia.find('h2', class_='titulo')
+        link_tag = titulo_tag.find('a') if titulo_tag else None
+        
+        if link_tag and link_tag.has_attr('href'):
+            link = link_tag['href']
+            full_link = link if link.startswith("http") else f"https://www.gov.br{link}"
+            titulo = link_tag.text.strip()
+            return f'**ANPD: [{titulo}]({full_link})**' 
+    return "**ANPD:** Nenhum link encontrado."
+
 async def newsglobo():
-    url = 'https://globo.com'
-    response = requests.get(url)
+    urlglobo = 'https://globo.com'
+    response = requests.get(urlglobo)
     soup = BeautifulSoup(response.content, 'html.parser')
-    first_news_element = soup.find('a', {'class': 'post__link'})
-    if first_news_element:
-        titulo = first_news_element.text.strip()
-        link = first_news_element['href']
-        return f'**NOTÍCIA:** [{titulo}]({link})'
-    else:
-        return "Nenhuma notícia principal encontrada."
+    catalinkglobo = soup.find('a', {'class': 'post__link'})
+    if catalinkglobo:
+        titulo = catalinkglobo.text.strip()
+        link = catalinkglobo['href']
+        return f'**GLOBO: [{titulo}]({link})**'
+    return "**GLOBO:** Nenhum link encontrado."
 
 async def msgpadrao():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
     await techupdates.send(f'{await newsglobo()}')
+    await techupdates.send(f'{await newsanpd()}')
     await techupdates.send(f'{await dolar()}')
 
 async def fimdomes():
@@ -281,13 +297,11 @@ async def deep(ctx, *, pergunta: str = None):
         print(f"Error {e}")
 
 ###################
-## !INFO SPOTIFY ##
+###### !INFO ######
 ###################
 
 @bot.command()
 async def info(ctx, *, search: str):
-    if ctx.guild.id != ID_LEGENDS_SERVER:
-        return
     results = sp.search(q=search, limit=1)
     if not results['tracks']['items']:
         await ctx.send("Nenhuma música encontrada no Spotify.")
@@ -315,9 +329,8 @@ async def info(ctx, *, search: str):
         f"**Link Spotify:** [Ouvir no Spotify]({track_url})\n"
         f"**Link Youtube:** [Ouvir no YouTube]({url})"
     )
-
-    channel = bot.get_channel(ID_LEGENDS_LOURDES)
-    await channel.send(info_message)
+    
+    await ctx.send(info_message)
 
 ###############
 #### !NEWS ####
