@@ -113,9 +113,10 @@ async def on_ready():
     try: 
         await mpID.send("TO ON")
         scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
         scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao, CronTrigger(hour=00, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
+        scheduler.add_job(msgpadrao2, CronTrigger(hour=00, minute=30, timezone="America/Sao_Paulo"))
         scheduler.start()
     except discord.Forbidden: 
         print(f'Não foi possível enviar a mensagem para {mpID.name}')
@@ -159,6 +160,12 @@ async def msgpadrao():
     await techupdates.send(f'{await newsglobo()}')
     await techupdates.send(f'{await newsanpd()}')
     await techupdates.send(f'{await dolar()}')
+
+async def msgpadrao2():
+    techupdates = bot.get_channel(ID_TECH_UPDATES)
+    await techupdates.send(f'{await newsglobo()}')
+    await techupdates.send(f'{await newsanpd()}')
+
 
 async def fimdomes():
     channel = bot.get_channel(ID_LEGENDS_LOURDES)
