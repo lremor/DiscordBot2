@@ -110,16 +110,18 @@ async def on_ready():
     game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
     print(f'{bot.user} conectou no Discord!')
-    try: 
-        await mpID.send("TO ON")
-        scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.add_job(msgpadrao2, CronTrigger(hour=00, minute=30, timezone="America/Sao_Paulo"))
-        scheduler.start()
-    except discord.Forbidden: 
-        print(f'Não foi possível enviar a mensagem para {mpID.name}')
+    job_exists = lambda job_id: any(job.id == job_id for job in scheduler.get_jobs())
+    if not job_exists('fimdomes'):
+        scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
+    if not job_exists('msgpadrao2_manha'):
+        scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
+    if not job_exists('msgpadrao2_madrugada'):
+        scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
+    if not job_exists('msgpadrao_tarde'):
+        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+    if not job_exists('msgpadrao_fim_de_tarde'):
+        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
+    await mpID.send("TO ON")
 
 async def dolar():
         link = 'https://economia.awesomeapi.com.br/last/USD-BRL'
