@@ -113,14 +113,20 @@ async def on_ready():
     job_exists = lambda job_id: any(job.id == job_id for job in scheduler.get_jobs())
     if not job_exists('fimdomes'):
         scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
+        print('Timer fim do mes iniciado.')
     if not job_exists('msgpadrao2_manha'):
         scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
-    if not job_exists('msgpadrao2_madrugada'):
-        scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
+        print('Timer das 9:30 iniciado.')
     if not job_exists('msgpadrao_tarde'):
-        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=36, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+        print('Timer das 13:30 iniciado.')
     if not job_exists('msgpadrao_fim_de_tarde'):
         scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
+        print('Timer das 17:30 iniciado.')
+    if not job_exists('msgpadrao2_madrugada'):
+        scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
+        print('Timer das 0:30 iniciado.')
+    scheduler.start()
     await mpID.send("TO ON")
 
 async def dolar():
