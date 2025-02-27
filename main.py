@@ -108,29 +108,29 @@ async def on_ready():
     start_time = datetime.datetime.now()
     mpID = await bot.fetch_user(ID_MP) 
     game = discord.Game(f"Counter-Strike")
-    scheduler.remove_all_jobs()
     await bot.change_presence(status=discord.Status.online, activity=game)
     print(f'{bot.user} conectou no Discord!')
     print('Iniciando timers!')
     await schedulers()
     await mpID.send("TO ON")
-
+    
 @bot.event
-async def on_resumed():
+async def on_disconnect():
+    current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f'Bot desconectado às {current_time}')
     scheduler.shutdown(wait=False)
-    print('Bot reconectado')
-    await schedulers()
+    print(f'Timers finalizados.')
     
 async def schedulers():
-    scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
+    scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
     print('Timer fim do mes iniciado.')
-    scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 9:30 iniciado.')
-    scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+    scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 13:30 iniciado.')
-    scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
+    scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 17:30 iniciado.')
-    scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 0:30 iniciado.')
     scheduler.start()
 
