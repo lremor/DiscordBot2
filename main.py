@@ -117,6 +117,7 @@ async def on_ready():
 
 @bot.event
 async def on_resumed():
+    scheduler.shutdown()
     scheduler.remove_all_jobs()
     print('Bot reconectado')
     await schedulers()
@@ -126,7 +127,7 @@ async def schedulers():
     print('Timer fim do mes iniciado.')
     scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
     print('Timer das 9:30 iniciado.')
-    scheduler.add_job(msgpadrao, CronTrigger(hour=11, minute=3, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+    scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
     print('Timer das 13:30 iniciado.')
     scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
     print('Timer das 17:30 iniciado.')
