@@ -108,34 +108,31 @@ async def on_ready():
     start_time = datetime.datetime.now()
     mpID = await bot.fetch_user(ID_MP) 
     game = discord.Game(f"Counter-Strike")
+    scheduler.remove_all_jobs()
     await bot.change_presence(status=discord.Status.online, activity=game)
     print(f'{bot.user} conectou no Discord!')
     print('Iniciando timers!')
-    job_exists = lambda job_id: any(job.id == job_id for job in scheduler.get_jobs())
-    if not job_exists('fimdomes'):
-        scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
-        print('Timer fim do mes iniciado.')
-    if not job_exists('msgpadrao2_manha'):
-        scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
-        print('Timer das 9:30 iniciado.')
-    if not job_exists('msgpadrao_tarde'):
-        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
-        print('Timer das 13:30 iniciado.')
-    if not job_exists('msgpadrao_fim_de_tarde'):
-        scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
-        print('Timer das 17:30 iniciado.')
-    if not job_exists('msgpadrao2_madrugada'):
-        scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
-        print('Timer das 0:30 iniciado.')
-    scheduler.start()
+    await schedulers()
     await mpID.send("TO ON")
 
 @bot.event
-async def on_disconnect():
-    print(f'Bot desconectado!')
+async def on_resumed():
     scheduler.remove_all_jobs()
-    print(f'Timers desativados!')
+    print('Bot reconectado')
+    await schedulers()
     
+async def schedulers():
+    scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
+    print('Timer fim do mes iniciado.')
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
+    print('Timer das 9:30 iniciado.')
+    scheduler.add_job(msgpadrao, CronTrigger(hour=11, minute=3, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+    print('Timer das 13:30 iniciado.')
+    scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
+    print('Timer das 17:30 iniciado.')
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_madrugada')
+    print('Timer das 0:30 iniciado.')
+    scheduler.start()
 
 async def dolar():
         link = 'https://economia.awesomeapi.com.br/last/USD-BRL'
