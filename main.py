@@ -2,7 +2,7 @@ import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, r
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from spotipy.oauth2 import SpotifyClientCredentials
-from discord.ext import tasks, commands
+from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
@@ -110,6 +110,7 @@ async def on_ready():
     game = discord.Game(f"Counter-Strike")
     await bot.change_presence(status=discord.Status.online, activity=game)
     print(f'{bot.user} conectou no Discord!')
+    print('Iniciando timers!')
     job_exists = lambda job_id: any(job.id == job_id for job in scheduler.get_jobs())
     if not job_exists('fimdomes'):
         scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"), id='fimdomes')
@@ -118,7 +119,7 @@ async def on_ready():
         scheduler.add_job(msgpadrao2, CronTrigger(hour=9, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao2_manha')
         print('Timer das 9:30 iniciado.')
     if not job_exists('msgpadrao_tarde'):
-        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=36, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
+        scheduler.add_job(msgpadrao, CronTrigger(hour=13, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_tarde')
         print('Timer das 13:30 iniciado.')
     if not job_exists('msgpadrao_fim_de_tarde'):
         scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"), id='msgpadrao_fim_de_tarde')
@@ -128,6 +129,13 @@ async def on_ready():
         print('Timer das 0:30 iniciado.')
     scheduler.start()
     await mpID.send("TO ON")
+
+@bot.event
+async def on_disconnect():
+    print(f'Bot desconectado!')
+    scheduler.remove_all_jobs()
+    print(f'Timers desativados!')
+    
 
 async def dolar():
         link = 'https://economia.awesomeapi.com.br/last/USD-BRL'
