@@ -117,8 +117,7 @@ async def on_ready():
 
 @bot.event
 async def on_resumed():
-    scheduler.shutdown()
-    scheduler.remove_all_jobs()
+    scheduler.shutdown(wait=False)
     print('Bot reconectado')
     await schedulers()
     
