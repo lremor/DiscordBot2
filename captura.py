@@ -3,7 +3,7 @@ import keyboard
 import pyautogui
 import numpy as np
 
-fps = 120
+fps = 30
 tamanho_tela = tuple(pyautogui.size())
 
 codec = cv2.VideoWriter_fourcc(*"XVID")

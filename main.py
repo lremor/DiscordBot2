@@ -119,8 +119,15 @@ async def on_disconnect():
     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f'Bot desconectado às {current_time}')
     scheduler.shutdown(wait=False)
-    print(f'Timers finalizados.')
+    print('Timers finalizados.')
     
+@bot.event
+async def on_resumed():
+    current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f'Bot retomou às {current_time}')
+    await schedulers()
+    print('Timers retomados.')
+
 async def schedulers():
     scheduler.add_job(fimdomes, CronTrigger(day=1, hour=0, minute=1, timezone="America/Sao_Paulo"))
     print('Timer fim do mes iniciado.')
