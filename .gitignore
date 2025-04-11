@@ -9,6 +9,7 @@ images/
 open.txt
 cookies.txt
 logs.db
+.gitignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
