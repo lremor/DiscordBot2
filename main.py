@@ -138,7 +138,7 @@ async def schedulers():
     print('Timer das 13:30 iniciado.')
     scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 17:30 iniciado.')
-    scheduler.add_job(msgpadrao2, CronTrigger(hour=1, minute=13, timezone="America/Sao_Paulo"))
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 0:30 iniciado.')
     scheduler.start()
 
