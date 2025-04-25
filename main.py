@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
 
 ##################
 ## TOKENS E IDS ##
@@ -137,7 +138,7 @@ async def schedulers():
     print('Timer das 13:30 iniciado.')
     scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 17:30 iniciado.')
-    scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"))
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=1, minute=13, timezone="America/Sao_Paulo"))
     print('Timer das 0:30 iniciado.')
     scheduler.start()
 
@@ -175,16 +176,46 @@ async def newsglobo():
         return f'**GLOBO: [{titulo}]({link})**'
     return "**GLOBO:** Nenhum link encontrado."
 
+
+async def newsboletimsec():
+    url = 'https://boletimsec.com.br/news-sitemap.xml'
+    
+    async with async_playwright() as p:
+        navegador = await p.chromium.launch()
+        pagina = await navegador.new_page()
+        await pagina.goto(url)
+        conteudo = await pagina.content()
+        await navegador.close()
+
+        # Analisa o conteúdo HTML com BeautifulSoup
+        soup = BeautifulSoup(conteudo, 'html.parser')
+
+        # Encontra todos os links dentro de <tbody>
+        tbody = soup.find('tbody')
+        if tbody:
+            links = tbody.find_all('a', href=True)
+            resultados = []
+            for link in links[:5]:  # Obtém os primeiros 5 links
+                href = link['href']
+                titulo = link.get_text(strip=True)
+                resultados.append(f'**BoletimSec: [{titulo}]({href})**')
+            return '\n'.join(resultados)
+        else:
+            return "**BoletimSec:** Nenhuma notícia encontrada."
+
+    
 async def msgpadrao():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
     await techupdates.send(f'{await newsglobo()}')
     await techupdates.send(f'{await newsanpd()}')
+    await techupdates.send(f'{await newsboletimsec()}')
     await techupdates.send(f'{await dolar()}')
 
 async def msgpadrao2():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
     await techupdates.send(f'{await newsglobo()}')
     await techupdates.send(f'{await newsanpd()}')
+    await techupdates.send(f'{await newsboletimsec()}')
 
 
 async def fimdomes():
