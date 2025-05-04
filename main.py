@@ -1,4 +1,4 @@
-import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, pandas as pd
+import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, httpx, xml.etree.ElementTree as ET, pandas as pd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -179,11 +179,16 @@ async def newsglobo():
 
 async def newsboletimsec():
     url = 'https://boletimsec.com.br/news-sitemap.xml'
-    
+
     async with async_playwright() as p:
         navegador = await p.chromium.launch()
         pagina = await navegador.new_page()
-        await pagina.goto(url)
+        response = await pagina.goto(url)
+
+        if response and response.status == 400:
+            await navegador.close()
+            return "**BoletimSec:** Erro 400 - Sem notícias disponíveis."
+
         conteudo = await pagina.content()
         await navegador.close()
 
@@ -194,20 +199,63 @@ async def newsboletimsec():
         tbody = soup.find('tbody')
         if tbody:
             links = tbody.find_all('a', href=True)
+            if not links:
+                return "**BoletimSec:** Nenhuma notícia disponível no momento."
+            
             resultados = []
             for link in links[:5]:  # Obtém os primeiros 5 links
                 href = link['href']
                 titulo = link.get_text(strip=True)
                 resultados.append(f'**BoletimSec: [{titulo}]({href})**')
-            return '\n'.join(resultados)
-        else:
-            return "**BoletimSec:** Nenhuma notícia encontrada."
+            
+            if resultados:
+                return '\n'.join(resultados)
+        
+        return "**BoletimSec:** Nenhuma notícia encontrada ou página vazia."
+
+async def newsseginfo():
+    url = 'https://seginfo.com.br/post-sitemap4.xml'
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        if response.status_code == 400:
+            return "**SegInfo:** Erro 400 - Sem notícias disponíveis."
+        elif response.status_code != 200:
+            return f"**SegInfo:** Erro {response.status_code} ao acessar o sitemap."
+
+        conteudo = response.text
+        root = ET.fromstring(conteudo)
+
+        noticias = []
+        for url_elem in root.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
+            loc = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+            lastmod = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod')
+            
+            if loc is not None and lastmod is not None:
+                try:
+                    data = datetime.datetime.fromisoformat(lastmod.text)
+                    noticias.append({'url': loc.text, 'data': data})
+                except ValueError:
+                    continue  # Ignorar caso a data esteja em formato inesperado
+
+        # Ordena pelas datas (mais recentes primeiro) e pega as duas últimas
+        noticias_ordenadas = sorted(noticias, key=lambda x: x['data'], reverse=True)[:2]
+
+        # Formata os resultados
+        resultados = []
+        for n in noticias_ordenadas:
+            titulo_formatado = n['url'].split('/')[-2].replace('-', ' ').title()
+            resultados.append(f"**SegInfo: [{titulo_formatado}]({n['url']})**")
+
+
+        return '\n'.join(resultados)
 
     
 async def msgpadrao():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
     await techupdates.send(f'{await newsglobo()}')
     await techupdates.send(f'{await newsanpd()}')
+    await techupdates.send(f'{await newsseginfo()}')
     await techupdates.send(f'{await newsboletimsec()}')
     await techupdates.send(f'{await dolar()}')
 
@@ -215,6 +263,7 @@ async def msgpadrao2():
     techupdates = bot.get_channel(ID_TECH_UPDATES)
     await techupdates.send(f'{await newsglobo()}')
     await techupdates.send(f'{await newsanpd()}')
+    await techupdates.send(f'{await newsseginfo()}')
     await techupdates.send(f'{await newsboletimsec()}')
 
 
