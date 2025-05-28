@@ -5,6 +5,7 @@ constants.py
 .constants.py
 constants
 venv/
+vscode/
 images/
 open.txt
 cookies.txt

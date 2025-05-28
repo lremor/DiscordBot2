@@ -1,4 +1,4 @@
-import datetime, time, os, random, discord, spotipy, yt_dlp, asyncio, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, httpx, xml.etree.ElementTree as ET, pandas as pd
+import datetime, time, os, random, discord, spotipy, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, httpx, xml.etree.ElementTree as ET, pandas as pd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -57,26 +57,6 @@ mensagens_aleatorias = [
     "Sorry {author}, i cant be perfect! by bona 2007 no auge",
     "GG {author}"
 ]
-
-ydl_opts = {
-    'format': 'bestaudio/best',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-    'noplaylist': True,
-    'extractaudio': True,
-    'audioformat': 'mp3',
-    'outtmpl': '%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': True,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0',  # Bind to IPv4 since IPv6 addresses cause issues sometimes
-}
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -596,50 +576,6 @@ async def msg(ctx, *, mensagem: str):
     else:
         print(f'Usuário {ctx.author.name} tentou enviar msg.')
 
-
-###################
-## !PLAY YOUTUBE ##
-###################
-
-# @bot.command()
-# async def play(ctx, *, search: str):
-#     if ctx.guild.id != ID_LEGENDS_SERVER:
-#         return
-#     # Verifica se o autor do comando está em um canal de voz
-#     if ctx.author.voice == None:
-#         await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
-#     else:
-
-
-#     # Conecta ao canal de voz do autor do comando
-#         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn -filter:a "volume=0.25"'}
-#         channel = ctx.author.voice.channel
-#         voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
-    
-#         if voice_client is None:
-#             voice_client = await channel.connect()
-
-#         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-#             info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
-#             url = info['url']
-#             title = info['title']
-
-#         voice_client.play(discord.FFmpegOpusAudio(url, **FFMPEG_OPTIONS))
-#         await ctx.send(f"Tocando: {title}")
-
-#         while voice_client.is_playing():
-#             await asyncio.sleep(1)
-
-#         await voice_client.disconnect()
-
-# @bot.command()
-# async def stop(ctx):
-#     if ctx.guild.id != ID_LEGENDS_SERVER:
-#         return
-#     voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
-#     if voice_client and voice_client.is_playing():
-#         voice_client.stop()
-#         await ctx.send("Música parada.")
 
 ################################################################################################
 ########################################## TECH ADV ############################################
