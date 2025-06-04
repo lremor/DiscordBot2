@@ -118,6 +118,8 @@ async def schedulers():
     print('Timer das 13:30 iniciado.')
     scheduler.add_job(msgpadrao, CronTrigger(hour=17, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 17:30 iniciado.')
+    scheduler.add_job(msgpadrao2, CronTrigger(hour=21, minute=30, timezone="America/Sao_Paulo"))
+    print('Timer das 21:30 iniciado.')
     scheduler.add_job(msgpadrao2, CronTrigger(hour=0, minute=30, timezone="America/Sao_Paulo"))
     print('Timer das 0:30 iniciado.')
     scheduler.start()
@@ -477,7 +479,7 @@ async def mes(ctx):
     quantidade = len(result)
     result_msg = f'Vocês jogaram {quantidade} lobbys no mês atual.'
     if result.empty:
-        await channelID.send('Nenhuma mensagem encontrada para o mês atual com o link específico.')
+        await channelID.send('Vocês jogaram 0 lobbys no mês atual.')
     else:
         await channelID.send(result_msg)
     
@@ -487,78 +489,78 @@ async def mes(ctx):
 ### !STATS PVT ###
 ###################
 
-@bot.command()
-async def stats(ctx):
-    global start_time
-    mpID = await bot.fetch_user(ID_MP)
-    userid = ctx.author.id
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    memory_usage = memory.percent
-    total_memory = memory.total / (1024 ** 3)
-    system = platform.system()
-    release = platform.release()
-    processor = platform.processor()
-    cpu_freq = psutil.cpu_freq().current
-    try:
-        temperatures = psutil.sensors_temperatures()
-        cpu_temp = temperatures['coretemp'][0].current if 'coretemp' in temperatures else 'N/A'
-    except AttributeError:
-        cpu_temp = 'N/A'
-    try:
-        gpus = GPUtil.getGPUs()
-        if gpus:
-            gpu = gpus[0]  # Considerando a primeira GPU
-            gpu_temp = f"{gpu.temperature}"+"°C"
-            gpu_name = gpu.name
-        else:
-            gpu_temp = "Nenhuma GPU encontrada."
-            gpu_name = 'Nenhuma GPU encontrada.'
-    except Exception as e:
-            gpu_temp = f"Ocorreu um erro ao obter a temperatura da GPU: {e}"
-            gpu_name = f"Ocorreu um erro ao obter o nome da GPU: {e}"
-    statsmsg = (
-        f"**Sistema Operacional:** {system} {release}\n"
-        f"**Processador:** {processor} ({cpu_freq / 1000:.2f} GHz)\n"
-        f"**Uso de CPU:** {cpu_usage}%\n"
-        f"**Temperatura da CPU:** {cpu_temp}°C\n"
-        f"**Uso de Memória:** {memory_usage}% de {total_memory:.2f} GB\n"
-        f"**GPU:** {gpu_name}\n"
-        f"**Temperatura da GPU:** {gpu_temp}\n"
-    )
-    if userid == ID_MP:
-        await mpID.send(statsmsg)
-    else:
-        await ctx.send('Comando restrito.')
-        print(f'Membro {ctx.author.name} tentou enviar o comando !stats')
+# @bot.command()
+# async def stats(ctx):
+#     global start_time
+#     mpID = await bot.fetch_user(ID_MP)
+#     userid = ctx.author.id
+#     cpu_usage = psutil.cpu_percent(interval=1)
+#     memory = psutil.virtual_memory()
+#     memory_usage = memory.percent
+#     total_memory = memory.total / (1024 ** 3)
+#     system = platform.system()
+#     release = platform.release()
+#     processor = platform.processor()
+#     cpu_freq = psutil.cpu_freq().current
+#     try:
+#         temperatures = psutil.sensors_temperatures()
+#         cpu_temp = temperatures['coretemp'][0].current if 'coretemp' in temperatures else 'N/A'
+#     except AttributeError:
+#         cpu_temp = 'N/A'
+#     try:
+#         gpus = GPUtil.getGPUs()
+#         if gpus:
+#             gpu = gpus[0]  # Considerando a primeira GPU
+#             gpu_temp = f"{gpu.temperature}"+"°C"
+#             gpu_name = gpu.name
+#         else:
+#             gpu_temp = "Nenhuma GPU encontrada."
+#             gpu_name = 'Nenhuma GPU encontrada.'
+#     except Exception as e:
+#             gpu_temp = f"Ocorreu um erro ao obter a temperatura da GPU: {e}"
+#             gpu_name = f"Ocorreu um erro ao obter o nome da GPU: {e}"
+#     statsmsg = (
+#         f"**Sistema Operacional:** {system} {release}\n"
+#         f"**Processador:** {processor} ({cpu_freq / 1000:.2f} GHz)\n"
+#         f"**Uso de CPU:** {cpu_usage}%\n"
+#         f"**Temperatura da CPU:** {cpu_temp}°C\n"
+#         f"**Uso de Memória:** {memory_usage}% de {total_memory:.2f} GB\n"
+#         f"**GPU:** {gpu_name}\n"
+#         f"**Temperatura da GPU:** {gpu_temp}\n"
+#     )
+#     if userid == ID_MP:
+#         await mpID.send(statsmsg)
+#     else:
+#         await ctx.send('Comando restrito.')
+#         print(f'Membro {ctx.author.name} tentou enviar o comando !stats')
 
 ###################
 ### !UPTIME PVT ###
 ###################
 
-@bot.command()
-async def uptime(ctx):
-    global start_time
-    mpID = await bot.fetch_user(ID_MP)
-    userid = ctx.author.id 
-    current_time = time.time()
+# @bot.command()
+# async def uptime(ctx):
+#     global start_time
+#     mpID = await bot.fetch_user(ID_MP)
+#     userid = ctx.author.id 
+#     current_time = time.time()
 
-    if start_time:
-        current_time = datetime.datetime.now()
-        uptime_duration = current_time - start_time
-        hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
-        if userid == ID_MP:
-            await mpID.send(upmsg)
-            print(upmsg)
-        else:
-            await ctx.send('Comando restrito.')
-            print(f'Membro {ctx.author.name} tentou enviar o comando !uptime')
-    else:
-        noupmsg = 'O tempo de início não foi registrado.'
-        await mpID.send(noupmsg)
-        print(noupmsg)
+#     if start_time:
+#         current_time = datetime.datetime.now()
+#         uptime_duration = current_time - start_time
+#         hours, remainder = divmod(uptime_duration.total_seconds(), 3600)
+#         minutes, seconds = divmod(remainder, 60)
+#         upmsg = f'O bot está online há {int(hours)} horas, {int(minutes)} minutos e {int(seconds)} segundos.'
+#         if userid == ID_MP:
+#             await mpID.send(upmsg)
+#             print(upmsg)
+#         else:
+#             await ctx.send('Comando restrito.')
+#             print(f'Membro {ctx.author.name} tentou enviar o comando !uptime')
+#     else:
+#         noupmsg = 'O tempo de início não foi registrado.'
+#         await mpID.send(noupmsg)
+#         print(noupmsg)
 
 
 ###################
@@ -577,46 +579,46 @@ async def msg(ctx, *, mensagem: str):
         print(f'Usuário {ctx.author.name} tentou enviar msg.')
 
 
-################################################################################################
-########################################## TECH ADV ############################################
-################################################################################################
+# ################################################################################################
+# ########################################## TECH ADV ############################################
+# ################################################################################################
 
-@bot.command()
-async def check(ctx, *, processo: str = None):
-    if ctx.guild.id != ID_TECH_SERVER:
-        return
-    if processo is None:
-        await ctx.send("Você deve digitar: !check 000802938472901394")
-        return
-    try:
-        processo_numero = int(processo)
-    except ValueError:
-        await ctx.send("O número do processo deve ser um valor inteiro.")
-        return
+# @bot.command()
+# async def check(ctx, *, processo: str = None):
+#     if ctx.guild.id != ID_TECH_SERVER:
+#         return
+#     if processo is None:
+#         await ctx.send("Você deve digitar: !check 000802938472901394")
+#         return
+#     try:
+#         processo_numero = int(processo)
+#     except ValueError:
+#         await ctx.send("O número do processo deve ser um valor inteiro.")
+#         return
     
-    headers = {
-        'Authorization': f'APIKey {DATAJUD_KEY}',
-        'Content-Type': 'application/json'
-    }
-    data = json.dumps({
-        "query": {
-            "match": {
-                "numeroProcesso": processo_numero
-            }
-        }
-    })
-    response = requests.request("POST", DATAJUD_URL, headers=headers, json=json.loads(data))
-    print(response.json())
-    if response.status_code == 200:
-        process_info = response.json()
-        if process_info['hits']['total']['value'] > 0:
-            numero_processo = process_info['hits']['hits'][0]['_source']['numeroProcesso']
-            data_atualizacao = process_info['hits']['hits'][0]['_source']['dataHoraUltimaAtualizacao']
-            await ctx.send(f"Processo: {numero_processo}\nÚltima Atualização: {data_atualizacao}")
-        else:
-            await ctx.send(f"Nenhum processo encontrado.")
-    else:
-        return await ctx.send(f"Erro ao consultar o processo: {response.status_code}")
+#     headers = {
+#         'Authorization': f'APIKey {DATAJUD_KEY}',
+#         'Content-Type': 'application/json'
+#     }
+#     data = json.dumps({
+#         "query": {
+#             "match": {
+#                 "numeroProcesso": processo_numero
+#             }
+#         }
+#     })
+#     response = requests.request("POST", DATAJUD_URL, headers=headers, json=json.loads(data))
+#     print(response.json())
+#     if response.status_code == 200:
+#         process_info = response.json()
+#         if process_info['hits']['total']['value'] > 0:
+#             numero_processo = process_info['hits']['hits'][0]['_source']['numeroProcesso']
+#             data_atualizacao = process_info['hits']['hits'][0]['_source']['dataHoraUltimaAtualizacao']
+#             await ctx.send(f"Processo: {numero_processo}\nÚltima Atualização: {data_atualizacao}")
+#         else:
+#             await ctx.send(f"Nenhum processo encontrado.")
+#     else:
+#         return await ctx.send(f"Erro ao consultar o processo: {response.status_code}")
 
 
 ##################
