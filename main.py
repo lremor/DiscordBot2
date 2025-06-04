@@ -1,4 +1,4 @@
-import datetime, time, os, random, discord, spotipy, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, httpx, xml.etree.ElementTree as ET, pandas as pd
+import datetime, aiohttp, time, os, random, discord, spotipy, sqlite3, requests, json, feedparser, psutil, GPUtil, platform, httpx, xml.etree.ElementTree as ET, pandas as pd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -6,7 +6,6 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 
 ##################
 ## TOKENS E IDS ##
@@ -158,42 +157,46 @@ async def newsglobo():
         return f'**GLOBO: [{titulo}]({link})**'
     return "**GLOBO:** Nenhum link encontrado."
 
-
 async def newsboletimsec():
     url = 'https://boletimsec.com.br/news-sitemap.xml'
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 400:
+                    return "**BoletimSec:** Erro 400 - Sem notícias disponíveis."
+                
+                if response.status != 200:
+                    return f"**BoletimSec:** Erro {response.status} - Não foi possível acessar as notícias."
+                
+                conteudo = await response.text()
+                
+                # Analisa o conteúdo XML com BeautifulSoup
+                soup = BeautifulSoup(conteudo, 'xml')  # Note que usamos 'xml' em vez de 'html.parser'
+                
+                # Encontra todas as tags <url> (que contêm as notícias em um sitemap XML)
+                urls = soup.find_all('url')
+                if not urls:
+                    return "**BoletimSec:** Nenhuma notícia disponível no momento."
+                
+                resultados = []
+                for url_tag in urls[:5]:  # Obtém as primeiras 5 notícias
+                    loc = url_tag.find('loc')
+                    news = url_tag.find('news:news')
+                    
+                    if loc and news:
+                        href = loc.get_text(strip=True)
+                        title = news.find('news:title')
+                        titulo = title.get_text(strip=True) if title else "Sem título"
+                        resultados.append(f'**BoletimSec: [{titulo}]({href})**')
+                
+                if resultados:
+                    return '\n'.join(resultados)
+                
+                return "**BoletimSec:** Nenhuma notícia encontrada ou formato inesperado."
 
-    async with async_playwright() as p:
-        navegador = await p.chromium.launch()
-        pagina = await navegador.new_page()
-        response = await pagina.goto(url)
-
-        if response and response.status == 400:
-            await navegador.close()
-            return "**BoletimSec:** Erro 400 - Sem notícias disponíveis."
-
-        conteudo = await pagina.content()
-        await navegador.close()
-
-        # Analisa o conteúdo HTML com BeautifulSoup
-        soup = BeautifulSoup(conteudo, 'html.parser')
-
-        # Encontra todos os links dentro de <tbody>
-        tbody = soup.find('tbody')
-        if tbody:
-            links = tbody.find_all('a', href=True)
-            if not links:
-                return "**BoletimSec:** Nenhuma notícia disponível no momento."
-            
-            resultados = []
-            for link in links[:5]:  # Obtém os primeiros 5 links
-                href = link['href']
-                titulo = link.get_text(strip=True)
-                resultados.append(f'**BoletimSec: [{titulo}]({href})**')
-            
-            if resultados:
-                return '\n'.join(resultados)
-        
-        return "**BoletimSec:** Nenhuma notícia encontrada ou página vazia."
+    except Exception as e:
+        return f"**BoletimSec:** Erro ao acessar as notícias - {str(e)}"
 
 async def newsseginfo():
     url = 'https://seginfo.com.br/post-sitemap4.xml'
